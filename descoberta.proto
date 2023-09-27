@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message MensagemDescoberta {
+  enum DeviceType {
+      gatway = 0
+      temperatura = 1;
+      umidade = 2;
+      atuador = 3;
+  }
+  string device_id = 2;
+  DeviceType device_type = 3;
+  string ip_address = 4;
+  int32 port = 5;
+}
