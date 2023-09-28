@@ -2,7 +2,7 @@ syntax = "proto3";
 
 message MensagemDescoberta {
   enum DeviceType {
-      gatway = 0
+      gatway = 0;
       temperatura = 1;
       umidade = 2;
       atuador = 3;
