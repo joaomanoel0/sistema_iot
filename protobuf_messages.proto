@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+message Discovery {
+  string message = 1;
+}
+
+message Identification {
+  string device_type = 1;
+  string device_ip = 2;
+  int32 device_port = 3;
+  string protocol = 4;
+}
+
+message Confirmation {
+  string message = 1;
+}
+
+
+message GatewayToDeviceMessage {
+  string command = 1;
+}
+
+message DeviceToGatewayMessage {
+  string response = 1;
+}
+
