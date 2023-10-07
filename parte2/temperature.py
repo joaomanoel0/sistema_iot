@@ -46,9 +46,9 @@ def main():
         if discovery_message.message == "Descoberta de dispositivos: Quem está aí?":
             # Agora, crie um novo socket UDP de servidor para aguardar a conexão do Gateway
             server_socket_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            server_socket_recive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            server_socket_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-            server_socket_recive.bind((DEVICE_HOST, DEVICE_PORT))
+            server_socket_receive.bind((DEVICE_HOST, DEVICE_PORT))
 
             # Crie uma mensagem de identificação usando Protocol Buffers
             identification_message = protobuf_messages_pb2.Identification()
@@ -63,7 +63,7 @@ def main():
             # Envie a mensagem de identificação para o gateway
             multicast_socket.sendto(identification_message.SerializeToString(), addr)
 
-            gateway_port_data = server_socket_recive.recv(1024)
+            gateway_port_data = server_socket_receive.recv(1024)
             gateway_port_message = protobuf_messages_pb2.GatewayPort()
             gateway_port_message.ParseFromString(gateway_port_data)
 
@@ -72,7 +72,7 @@ def main():
             print(f"Dispositivo enviando para o endereço {addr[1]}:{gateway_port}")
             
             while True:
-                response_data = server_socket_recive.recv(1024)
+                response_data = server_socket_receive.recv(1024)
                 response = protobuf_messages_pb2.GatewayToDeviceMessage()
                 response.ParseFromString(response_data)
 
@@ -88,10 +88,10 @@ def main():
                     print(temperature_data)
                     server_socket_send.sendto(temperature_data.SerializeToString(), (addr[0], gateway_port))
                     
-                    server_socket_recive.settimeout(5)
+                    server_socket_receive.settimeout(5)
                     
                     try:
-                        stop_data = server_socket_recive.recv(1024)
+                        stop_data = server_socket_receive.recv(1024)
                         stop = protobuf_messages_pb2.GatewayToDeviceMessage()
                         stop.ParseFromString(stop_data)
 
@@ -101,7 +101,7 @@ def main():
                     except socket.timeout:
                         pass
 
-                server_socket_recive.settimeout(None)
+                server_socket_receive.settimeout(None)
 
 def read_temperature_data():
     temperature_message = protobuf_messages_pb2.DeviceToGatewayMessage()
