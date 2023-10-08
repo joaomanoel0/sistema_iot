@@ -176,12 +176,20 @@ class Gateway:
                     print("Escolha inválida. Tente novamente.")
             except ValueError:
                 print("Entrada inválida. Digite o número do dispositivo ou /VOLTAR.")
+ 
 
 
 if __name__ == "__main__":
     gateway = Gateway("127.0.0.1", 12345)
     print("Procurando dispositivos, aguarde 5 segundos")
     gateway.start()
+
+
+for device in gateway.connected_devices:
+    if device.protocol == "UDP":
+        message = protobuf_messages_pb2.GatewayToDeviceMessage()
+        message.command = "Pare"
+        gateway_udp_socket.sendto(message.SerializeToString(), (device.device_ip, device.device_port))
 
 
 

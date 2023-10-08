@@ -22,6 +22,7 @@ def main():
     DEVICE_HOST = get_public_ip()
     DEVICE_PORT = 8090
     SENDING = False
+    CONNECTED = True
 
     # Criando um socket UDP para escutar o grupo multicast
     multicast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -71,15 +72,29 @@ def main():
             
             print(f"Dispositivo enviando para o endereço {addr[1]}:{gateway_port}")
             
-            while True:
-                response_data = server_socket_receive.recv(1024)
-                response = protobuf_messages_pb2.GatewayToDeviceMessage()
-                response.ParseFromString(response_data)
+            while CONNECTED:
+                server_socket_receive.settimeout(1)
 
-                print(response.command)
+                try:
+                    response_data = server_socket_receive.recv(1024)
+                    response = protobuf_messages_pb2.GatewayToDeviceMessage()
+                    response.ParseFromString(response_data)
 
-                if response.command == "Iniciar":
-                    SENDING = True
+                    print(response.command)
+
+                    if response.command == "Pare":
+                        CONNECTED = False
+                        multicast_socket.close()
+                        server_socket_send.close()
+                        server_socket_receive.close()
+                        sys.exit()
+
+                    elif response.command == "Iniciar":
+                        SENDING = True
+
+                except socket.timeout:
+                        pass
+
 
 
                 while SENDING:
@@ -88,8 +103,7 @@ def main():
                     print(temperature_data)
                     server_socket_send.sendto(temperature_data.SerializeToString(), (addr[0], gateway_port))
                     
-                    server_socket_receive.settimeout(5)
-                    
+
                     try:
                         stop_data = server_socket_receive.recv(1024)
                         stop = protobuf_messages_pb2.GatewayToDeviceMessage()
@@ -101,12 +115,13 @@ def main():
                     except socket.timeout:
                         pass
 
-                server_socket_receive.settimeout(None)
 
 def read_temperature_data():
     temperature_message = protobuf_messages_pb2.DeviceToGatewayMessage()
     mean_temperature = 25.0  # Média de temperatura
     std_deviation = 2.0      # Desvio padrão da temperatura
+
+    time.sleep(4)
 
     temperature_value = round(np.random.normal(mean_temperature, std_deviation), 1)
     temperature_message.response = f"{temperature_value}°C"
