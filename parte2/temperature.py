@@ -6,6 +6,7 @@ import sys
 import time
 import random
 import numpy as np
+import os
 
 def get_public_ip():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -21,6 +22,8 @@ def main():
     multicast_port = 54321
     DEVICE_HOST = get_public_ip()
     DEVICE_PORT = 8090
+    global CONNECTED
+    global SENDING
     SENDING = False
     CONNECTED = True
 
@@ -72,56 +75,55 @@ def main():
             
             print(f"Dispositivo enviando para o endereço {addr[1]}:{gateway_port}")
             
-            while CONNECTED:
-                server_socket_receive.settimeout(1)
+            def receive_data():
+                global CONNECTED
+                global SENDING
 
-                try:
+                while CONNECTED:
                     response_data = server_socket_receive.recv(1024)
                     response = protobuf_messages_pb2.GatewayToDeviceMessage()
                     response.ParseFromString(response_data)
 
                     print(response.command)
 
-                    if response.command == "Pare":
+                    if response.command == "Desligue":
                         CONNECTED = False
                         multicast_socket.close()
-                        server_socket_send.close()
                         server_socket_receive.close()
-                        sys.exit()
+                        server_socket_send.close()
+                        os._exit(0) 
 
                     elif response.command == "Iniciar":
                         SENDING = True
 
-                except socket.timeout:
-                        pass
+                    elif response.command == "Pare":
+                        SENDING = False
 
+            def send_data():
+                global CONNECTED
+                global SENDING
+                while CONNECTED: 
+                    while SENDING:
+                        # Simulação de leitura de umidade do solo (envio contínuo)
+                        temperature_data = read_temperature_data()  # Função para simular a leitura de temperatura
+                        print(temperature_data)
+                        server_socket_send.sendto(temperature_data.SerializeToString(), (addr[0], gateway_port))
 
+                        time.sleep(4)
 
-                while SENDING:
-                    # Simulação de leitura de temperatura (envio contínuo)
-                    temperature_data = read_temperature_data()  # Função para simular a leitura de temperatura
-                    print(temperature_data)
-                    server_socket_send.sendto(temperature_data.SerializeToString(), (addr[0], gateway_port))
-                    
+            # Criando threads para recepção e envio
+            receive_thread = threading.Thread(target=receive_data)
+            send_thread = threading.Thread(target=send_data)
 
-                    try:
-                        stop_data = server_socket_receive.recv(1024)
-                        stop = protobuf_messages_pb2.GatewayToDeviceMessage()
-                        stop.ParseFromString(stop_data)
-
-                        if stop.command == "Pare":
-                            SENDING = False
-
-                    except socket.timeout:
-                        pass
+            # Iniciando as threads
+            receive_thread.start()
+            send_thread.start()
 
 
 def read_temperature_data():
     temperature_message = protobuf_messages_pb2.DeviceToGatewayMessage()
     mean_temperature = 25.0  # Média de temperatura
     std_deviation = 2.0      # Desvio padrão da temperatura
-
-    time.sleep(4)
 
     temperature_value = round(np.random.normal(mean_temperature, std_deviation), 1)
     temperature_message.response = f"{temperature_value}°C"

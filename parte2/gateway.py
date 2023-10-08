@@ -188,7 +188,7 @@ if __name__ == "__main__":
 for device in gateway.connected_devices:
     if device.protocol == "UDP":
         message = protobuf_messages_pb2.GatewayToDeviceMessage()
-        message.command = "Pare"
+        message.command = "Desligue"
         gateway_udp_socket.sendto(message.SerializeToString(), (device.device_ip, device.device_port))
 
 

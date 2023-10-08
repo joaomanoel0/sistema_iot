@@ -6,6 +6,8 @@ import sys
 import time
 import random
 import numpy as np
+import os
+
 
 def get_public_ip():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -20,7 +22,9 @@ def main():
     multicast_group = "224.0.0.1"
     multicast_port = 54321
     DEVICE_HOST = get_public_ip()
-    DEVICE_PORT = 8034
+    DEVICE_PORT = 8037
+    global SENDING 
+    global CONNECTED
     SENDING = False
     CONNECTED = True
 
@@ -70,56 +74,55 @@ def main():
             gateway_port = gateway_port_message.gateway_port
             
             print(f"Dispositivo enviando para o endereço {addr[1]}:{gateway_port}")
-            
-            while CONNECTED:
-                server_socket_receive.settimeout(1)
 
-                try:
+            def receive_data():
+                global CONNECTED
+                global SENDING
+
+                while CONNECTED:
                     response_data = server_socket_receive.recv(1024)
                     response = protobuf_messages_pb2.GatewayToDeviceMessage()
                     response.ParseFromString(response_data)
 
                     print(response.command)
 
-                    if response.command == "Pare":
+                    if response.command == "Desligue":
                         CONNECTED = False
                         multicast_socket.close()
-                        server_socket_send.close()
                         server_socket_receive.close()
-                        sys.exit()
+                        server_socket_send.close()
+                        os._exit(0) 
 
                     elif response.command == "Iniciar":
                         SENDING = True
 
-                except socket.timeout:
-                        pass
+                    elif response.command == "Pare":
+                        SENDING = False
 
+            def send_data():
+                global CONNECTED
+                global SENDING
+                while CONNECTED: 
+                    while SENDING:
+                        # Simulação de leitura de umidade do solo (envio contínuo)
+                        humidity_data = read_humidity_data()  # Função para simular a leitura de umidade do solo
+                        print(humidity_data)
+                        server_socket_send.sendto(humidity_data.SerializeToString(), (addr[0], gateway_port))
 
-                while SENDING:
-                    # Simulação de leitura de umidade do solo(envio contínuo)
-                    humidity_data = read_humidity_data()  # Função para simular a leitura de umidade do solo
-                    print(humidity_data)
-                    server_socket_send.sendto(humidity_data.SerializeToString(), (addr[0], gateway_port))
+                        time.sleep(4)
 
-                    
-                    try:
-                        stop_data = server_socket_receive.recv(1024)
-                        stop = protobuf_messages_pb2.GatewayToDeviceMessage()
-                        stop.ParseFromString(stop_data)
+            # Criando threads para recepção e envio
+            receive_thread = threading.Thread(target=receive_data)
+            send_thread = threading.Thread(target=send_data)
 
-                        if stop.command == "Pare":
-                            SENDING = False
-
-                    except socket.timeout:
-                        pass
-
+            # Iniciando as threads
+            receive_thread.start()
+            send_thread.start()
 
 def read_humidity_data():
     humidity_message = protobuf_messages_pb2.DeviceToGatewayMessage()
     mean_humidity = 50.0  # Média de umidade
     std_deviation = 2.0      # Desvio padrão da umidade
-
-    time.sleep(4)
 
     humidity_value = round(np.random.normal(mean_humidity, std_deviation), 1)
     humidity_message.response = f"{humidity_value}%"
