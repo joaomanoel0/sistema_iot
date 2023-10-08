@@ -17,7 +17,7 @@ def main():
     multicast_port = 54321
     DEVICE_HOST = get_public_ip()
     DEVICE_PORT = 8083
-    STATUS_water_pump = False #False = desligada e True = ligada
+    STATUS_lamp = False #False = apagada e True = acesa
 
     # Criando um socket UDP para escutar o grupo multicast
     multicast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -52,7 +52,7 @@ def main():
 
             # Criando uma mensagem de identificação usando Protocol Buffers
             identification_message = protobuf_messages_pb2.Identification()
-            identification_message.device_type = "Bomba d'agua"  # Substitua pelo tipo do dispositivo
+            identification_message.device_type = "Lampada"  # Substitua pelo tipo do dispositivo
             identification_message.device_ip = DEVICE_HOST  # Substitua pelo IP do dispositivo
             identification_message.device_port = DEVICE_PORT  # Substitua pela porta do dispositivo
             identification_message.protocol = "TCP"
@@ -85,21 +85,21 @@ def main():
                         response_message = protobuf_messages_pb2.DeviceToGatewayMessage()
 
                         if user_command == "/Menu":
-                            response_message.response = "Digite:\n1 - Para ligar a bomba\n2 - Para desligar a bomba\n3 - Para ver o status da bomba"
+                            response_message.response = "Digite:\n1 - Para ligar a lampada\n2 - Para desligar a lampada\n3 - Para ver o status da lampada"
                         elif user_command == "1":
-                            if STATUS_water_pump:
-                                response_message.response = "Bomba já está ligada"
+                            if STATUS_lamp:
+                                response_message.response = "Lampada já está ligada"
                             else:
-                                STATUS_water_pump = True
-                                response_message.response = "Bomba foi ligada"
+                                STATUS_lamp = True
+                                response_message.response = "Lampada foi ligada"
                         elif user_command == "2":
-                            if STATUS_water_pump:
-                                STATUS_water_pump = False
-                                response_message.response = "Bomba foi desligada"
+                            if STATUS_lamp:
+                                STATUS_lamp = False
+                                response_message.response = "Lampada foi desligada"
                             else:
-                                response_message.response = "Bomba já está desligada"
+                                response_message.response = "Lampada já está desligada"
                         elif user_command =='3':
-                            response_message.response="Bomba está ligada" if STATUS_water_pump else "Bomba está desligada"
+                            response_message.response="Lampada está ligada" if STATUS_lamp else "Lampada está desligada"
                         else:
                              response_message.response = "Comando inválido: Digite /Menu para ver os comandos do dispositivo"
 
