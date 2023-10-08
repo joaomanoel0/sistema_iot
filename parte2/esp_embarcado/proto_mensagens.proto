@@ -1,0 +1,26 @@
+syntax = "proto3";
+import "nanopb.proto";
+import "google/protobuf/descriptor.proto";
+message Discovery {
+  string message = 1 [(nanopb).max_length = 100];
+}
+
+message Identification {
+  string device_type = 1 [(nanopb).max_length = 60];
+  string device_ip = 2 [(nanopb).max_length = 20];
+  int32 device_port = 3;
+  string protocol = 4 [(nanopb).max_length = 5];
+}
+
+message GatewayPort {
+  int32 gateway_port = 1;
+}
+
+
+message GatewayToDeviceMessage {
+  string command = 1 [(nanopb).max_length = 100];
+}
+
+message DeviceToGatewayMessage {
+  string response = 1 [(nanopb).max_length = 100];
+}
