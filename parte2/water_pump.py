@@ -17,7 +17,7 @@ def main():
     multicast_port = 54321
     DEVICE_HOST = get_public_ip()
     DEVICE_PORT = 8083
-    STATUS_water_pump = False #False = apagada e True = acesa
+    STATUS_water_pump = False #False = desligada e True = ligada
 
     # Criando um socket UDP para escutar o grupo multicast
     multicast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
