@@ -6,7 +6,7 @@ import sys
 
 def get_public_ip():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect(("8.8.8.8", 80))  # Use um servidor DNS público como o Google DNS
+    sock.connect(("8.8.8.8", 80))  
     public_ip = sock.getsockname()[0]
     sock.close()
     return public_ip
@@ -19,7 +19,7 @@ def main():
     DEVICE_PORT = 8083
     STATUS_water_pump = False #False = apagada e True = acesa
 
-    # Crie um socket UDP para escutar o grupo multicast
+    # Criando um socket UDP para escutar o grupo multicast
     multicast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     multicast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     multicast_socket.bind(("", multicast_port))
@@ -36,12 +36,12 @@ def main():
         discovery_message.ParseFromString(data)
 
 
-        # Adicione um print para verificar a mensagem de descoberta
+        # Adicionando um print para verificar a mensagem de descoberta
         print(f"Recebido: {discovery_message.message}")
 
         if discovery_message.message == "Descoberta de dispositivos: Quem está aí?":
 
-            # Agora, crie um novo socket TCP para a comunicação direta com o Gateway
+            # criando um novo socket TCP para a comunicação direta com o Gateway
             device_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 
             try:
@@ -50,17 +50,17 @@ def main():
                 print("Não foi possível estabelecer conexão com o socket. Encerrando servidor.")
                 sys.exit(0)
 
-            # Crie uma mensagem de identificação usando Protocol Buffers
+            # Criando uma mensagem de identificação usando Protocol Buffers
             identification_message = protobuf_messages_pb2.Identification()
             identification_message.device_type = "Bomba d'agua"  # Substitua pelo tipo do dispositivo
             identification_message.device_ip = DEVICE_HOST  # Substitua pelo IP do dispositivo
             identification_message.device_port = DEVICE_PORT  # Substitua pela porta do dispositivo
             identification_message.protocol = "TCP"
 
-            # Adicione um print para verificar a mensagem de identificação
+            # Adicionando um print para verificar a mensagem de identificação
             print(f"Enviado: {identification_message}")
 
-            # Envie a mensagem de identificação de volta ao endereço de origem da mensagem de descoberta
+            # Enviando a mensagem de identificação de volta ao endereço de origem da mensagem de descoberta
             multicast_socket.sendto(identification_message.SerializeToString(), addr)           
            
 

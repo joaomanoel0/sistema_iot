@@ -1,6 +1,6 @@
 import socket
 import threading
-import protobuf_messages_pb2  # Importe suas definições de mensagens Protocol Buffers aqui
+import protobuf_messages_pb2 
 import struct
 import sys
 import time
@@ -9,7 +9,7 @@ import numpy as np
 
 def get_public_ip():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect(("8.8.8.8", 80))  # Use um servidor DNS público como o Google DNS
+    sock.connect(("8.8.8.8", 80))  
     public_ip = sock.getsockname()[0]
     sock.close()
     return public_ip
@@ -23,7 +23,7 @@ def main():
     DEVICE_PORT = 8090
     SENDING = False
 
-    # Crie um socket UDP para escutar o grupo multicast
+    # Criando um socket UDP para escutar o grupo multicast
     multicast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     multicast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     multicast_socket.bind(("", multicast_port))
@@ -40,27 +40,27 @@ def main():
         discovery_message = protobuf_messages_pb2.Discovery()
         discovery_message.ParseFromString(data)
 
-        # Adicione um print para verificar a mensagem de descoberta
+        # Adicionando um print para verificar a mensagem de descoberta
         print(f"Recebido: {discovery_message.message}")
 
         if discovery_message.message == "Descoberta de dispositivos: Quem está aí?":
-            # Agora, crie um novo socket UDP de servidor para aguardar a conexão do Gateway
+            # criando um novo socket UDP de servidor para aguardar a conexão do Gateway
             server_socket_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             server_socket_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
             server_socket_receive.bind((DEVICE_HOST, DEVICE_PORT))
 
-            # Crie uma mensagem de identificação usando Protocol Buffers
+            # Criando uma mensagem de identificação usando Protocol Buffers
             identification_message = protobuf_messages_pb2.Identification()
             identification_message.device_type = "Sensor de Temperatura"
             identification_message.device_ip = DEVICE_HOST
             identification_message.device_port = DEVICE_PORT
-            identification_message.protocol = "UDP"  # Adicione o protocolo (UDP ou TCP) conforme necessário
+            identification_message.protocol = "UDP"  
 
-            # Adicione um print para verificar a mensagem de identificação
+            # Adicionando um print para verificar a mensagem de identificação
             print(f"Enviado: {identification_message}")
 
-            # Envie a mensagem de identificação para o gateway
+            # Enviando a mensagem de identificação para o gateway
             multicast_socket.sendto(identification_message.SerializeToString(), addr)
 
             gateway_port_data = server_socket_receive.recv(1024)

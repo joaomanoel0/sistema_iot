@@ -1,6 +1,6 @@
 import socket
 import threading
-import protobuf_messages_pb2  # Importe suas definições de mensagens Protocol Buffers aqui
+import protobuf_messages_pb2  
 import time
 import sys
 import select
@@ -9,7 +9,7 @@ import random
 
 def get_public_ip():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect(("8.8.8.8", 80))  # Use um servidor DNS público como o Google DNS
+    sock.connect(("8.8.8.8", 80))  
     public_ip = sock.getsockname()[0]
     sock.close()
     return public_ip
@@ -94,7 +94,7 @@ class Gateway:
                     data, _ = multicast_socket.recvfrom(1024)
                     identification_message = protobuf_messages_pb2.Identification()
                     identification_message.ParseFromString(data)
-                    print(identification_message)
+                    
 
                     if all([identification_message.device_type, identification_message.device_ip,
                             identification_message.device_port, identification_message.protocol]):
@@ -128,7 +128,7 @@ class Gateway:
 
                     if device.protocol == "UDP":
                         print("Pressione 'Q' a qualquer momento para voltar ao menu principal.")
-                        print(f"Recebendo mensagens do dispositivo {device.device_type} em {device.device_ip}:{device.device_port}...")
+                        print(f"Recebendo mensagens do dispositivo {device.device_type} ")
                         message = protobuf_messages_pb2.GatewayToDeviceMessage()
                         message.command = "Iniciar"
                         gateway_udp_socket.sendto(message.SerializeToString(), (device.device_ip, device.device_port))
@@ -136,20 +136,20 @@ class Gateway:
                         first_message_printed = False
                         while True:
                             data, addr = gateway_udp_socket.recvfrom(1024)
-                            message = f"Recebido de {addr}: {data.decode()}"
+                            message = f"Recebido de {device.device_type}: {data.decode()}"
                             
-                            # Mova o cursor para a primeira posição da linha anterior
+                            # Movendo o cursor para a primeira posição da linha anterior
                             if last_addr:
                                 move_cursor(0, last_addr[1] + 1)
                             if not first_message_printed:
                                 print(message)
                                 first_message_printed = True
                             else:
-                            # Limpe as duas linhas anteriores
+                            # Limpando as duas linhas anteriores
                                 print("\033[F\033[K\033[F\033[K", end="")
                                 print(message)
                             last_addr = addr
-                            # Verifique continuamente se o usuário pressionou 'Q' para sair
+                            # Verificando continuamente se o usuário pressionou 'Q' para sair
                             if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
                                 user_input = input()
                                 if user_input == 'Q':
