@@ -13,7 +13,7 @@ def get_public_ip():
 
 
 def main():
-    multicast_group = "224.0.0.1"
+    multicast_group = "224.1.1.1"
     multicast_port = 54321
     DEVICE_HOST = get_public_ip()
     DEVICE_PORT = 8083
