@@ -16,10 +16,10 @@
 #include "pb_decode.h"
 #include "pb_encode.h"
 
-const char *ssid = "brisa-2664316";
-const char *password = "kum0hxa8";
+const char *ssid = "brisa-2664";
+const char *password = "*********";
 // const char* ssid = "JM";
-// const char* password = "testedoprojeto2";
+// const char* password = "*********";
 
 // Porta que a ESP8266 ficará escutando o multicast
 const IPAddress multicast_ip(224, 1, 1, 1);
@@ -29,6 +29,7 @@ unsigned int gateway_port;
 IPAddress ip_esp;
 int packetSize;
 bool envia = false;
+bool conectado = true;
 
 // Crie uma instância do objeto UDP
 WiFiUDP udp;
@@ -124,7 +125,7 @@ void loop() {
             sizepk = 0;
 
             DeviceToGatewayMessage mensagemDevtoGet = DeviceToGatewayMessage_init_zero;
-            while (1) {
+            while (conectado) {
               server_socket_receve.begin(device_port);
               sizepk = 0;
               while (sizepk == 0) {
@@ -142,11 +143,14 @@ void loop() {
                 if (result == 0) {
                   envia = true;
                   envia_umidade(mensagemDevtoGet, server_socket_send);
+                } else if (strcmp(mensagemGattoDev.command, "Desligue") == 0){
+                  conectado = false;
                 } else {
                   envia = false;
                 }
               }
             }
+            Serial.println("Desconectado do gateway e aguardando novas conexões...");
           } else {
             Serial.println("Não foi possível decodificar a mensagem");
           }
@@ -208,6 +212,9 @@ void verifica_parada() {
         if (result == 0) {
           envia = false;
           Serial.println("Para!");
+        } else if( strcmp(mensagemGattoDev_pare.command, "Desligue") == 0){
+          envia = false;
+          conectado = false;
         } else {
           envia = true;
         }
