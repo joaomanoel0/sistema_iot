@@ -83,7 +83,7 @@ class Gateway:
         discovery_message = protobuf_messages_pb2.Discovery()
         discovery_message.message = "Descoberta de dispositivos: Quem está aí?"
 
-        multicast_group = ("224.0.0.1", 54321)
+        multicast_group = ("224.1.1.1", 54321)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as multicast_socket:
             multicast_socket.sendto(discovery_message.SerializeToString(), multicast_group)
 
